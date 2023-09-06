@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolve Infotech Assignment</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mt-5">
+            <img src="https://images.crunchbase.com/image/upload/c_lpad,f_auto,q_auto:eco,dpr_1/kpykzcjncqwgm1w9gucw" style="width:130px"/>
+            Evolve Infotech Assignment
+        </h2>
+
+        <hr/>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h2>Add a New Category</h2>
+                <form id="addCategoryForm" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="category_name">Category Name:</label>
+                        <input type="text" class="form-control" id="category_name" name="category_name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <h2>Categories</h2>
+                <ul id="categoryList" class="list-group">
+                    {% for category in categories %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ category.categoryname }}
+                        <button class="btn btn-sm btn-info update-category" data-id="{{ category.id }}">Update</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <hr/>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h2>Add a New Product</h2>
+                <form id="addProductForm" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="category_id">Category:</label>
+                        <select class="form-control" id="category_id" name="category_id" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.categoryname }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product_name">Product Name:</label>
+                        <input type="text" class="form-control" id="product_name" name="product_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price:</label>
+                        <input type="number" class="form-control" id="price" name="price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea class="form-control" id="description" name="description" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <h2>Products</h2>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Product Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productList">
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.categoryname.categoryname }}</td>
+                            <td>{{ product.product_name }}</td>
+                            <td>{{ product.price }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td>{{ product.description }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">No data found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $("#addCategoryForm").submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'add_category' %}",
+                    data: $(this).serialize(),
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert("Failed to add category.");
+                        }
+                    }
+                });
+            });
+
+            $(".update-category").click(function () {
+                var category_id = $(this).data("id");
+                var new_name = prompt("Enter a new category name:");
+                if (new_name !== null) {
+                    $.ajax({
+                        type: "POST",
+                        url: `/update_category/${category_id}/`,
+                        data: {
+                            csrfmiddlewaretoken: "{{ csrf_token }}",
+                            new_name: new_name,
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                alert("Failed to update category.");
+                            }
+                        }
+                    });
+                }
+            });
+
+            $("#addProductForm").submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'add_product' %}",
+                    data: $(this).serialize(),
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert("Failed to add product.");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
